@@ -1,259 +1,211 @@
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Simple EHR on Azure</title>
+const form = document.getElementById("patientForm");
+const records = document.getElementById("records");
+const message = document.getElementById("message");
+const search = document.getElementById("search");
+const count = document.getElementById("count");
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+// Assignment 1: Load saved patient records
 
-        body {
-            margin: 0;
-            padding: 24px;
-            font-family: Arial, sans-serif;
-            background: #eef4f8;
-            color: #203447;
-        }
+let patients = JSON.parse(
+    localStorage.getItem("patients") || "[]"
+);
 
-        main {
-            max-width: 900px;
-            margin: auto;
-            padding: 28px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 18px #00000012;
-        }
+// Save patient records in LocalStorage
 
-        h1 {
-            margin-top: 0;
-            color: #146b83;
-        }
+function saveRecords() {
+    localStorage.setItem(
+        "patients",
+        JSON.stringify(patients)
+    );
+}
 
-        .description {
-            line-height: 1.6;
-            color: #526575;
-        }
+// Display patient records
 
-        label {
-            display: block;
-            margin-top: 16px;
-            font-weight: bold;
-        }
+function displayRecords(data = patients) {
 
-        input,
-        textarea {
-            width: 100%;
-            margin-top: 7px;
-            padding: 11px;
-            border: 1px solid #aab8c2;
-            border-radius: 6px;
-            font: inherit;
-        }
+    records.textContent = "";
 
-        input:focus,
-        textarea:focus {
-            outline: 2px solid #146b83;
-            outline-offset: 2px;
-        }
+    data.forEach(function(patient) {
 
-        button {
-            margin-top: 18px;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 6px;
-            background: #146b83;
-            color: white;
-            font: inherit;
-            cursor: pointer;
-        }
+        const row = document.createElement("tr");
 
-        button:hover {
-            background: #0e5063;
-        }
+        const values = [
+            patient.id,
+            patient.name,
+            patient.age,
+            patient.notes
+        ];
 
-        #message {
-            min-height: 24px;
-            color: #146b83;
-        }
+        values.forEach(function(value) {
 
-        .table-container {
-            overflow-x: auto;
-        }
+            const cell = document.createElement("td");
 
-        table {
-            width: 100%;
-            margin-top: 16px;
-            border-collapse: collapse;
-        }
+            // Assignment 7: Safe text display
+            cell.textContent = value;
 
-        th,
-        td {
-            padding: 12px;
-            border: 1px solid #ccd7df;
-            text-align: left;
-            overflow-wrap: anywhere;
-            white-space: pre-wrap;
-        }
-
-        th {
-            background: #e7f2f6;
-        }
-
-        footer {
-            margin-top: 24px;
-            font-size: 14px;
-            color: #526575;
-        }
-
-        @media (max-width: 600px) {
-            body {
-                padding: 12px;
-            }
-
-            main {
-                padding: 18px;
-            }
-
-            h1 {
-                font-size: 26px;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <main>
-
-        <h1>Electronic Health Record</h1>
-
-        <p class="description">
-            A simple EHR demonstration hosted on Microsoft Azure.
-            Use fictional patient information only.
-        </p>
-
-        <h2>Patient Entry Form</h2>
-
-        <form id="patientForm">
-
-            <label for="patientId">Patient ID</label>
-            <input
-                id="patientId"
-                placeholder="Example: P001"
-                maxlength="30"
-                required
-            >
-
-            <label for="patientName">Patient Name</label>
-            <input
-                id="patientName"
-                placeholder="Example: Demo Patient"
-                maxlength="100"
-                required
-            >
-
-            <label for="age">Age in years</label>
-            <input
-                id="age"
-                type="number"
-                min="0"
-                max="120"
-                step="1"
-                required
-            >
-
-            <label for="notes">Clinical Notes</label>
-            <textarea
-                id="notes"
-                rows="3"
-                placeholder="Enter sample clinical notes"
-                maxlength="500"
-                required
-            ></textarea>
-
-            <button type="submit">Add Patient Record</button>
-
-        </form>
-
-        <p id="message" role="status"></p>
-
-        <h2>Patient Records</h2>
-
-        <p>
-            These records are temporary and disappear when
-            the page is refreshed.
-        </p>
-
-        <div class="table-container">
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Patient ID</th>
-                        <th>Name</th>
-                        <th>Age</th>
-                        <th>Clinical Notes</th>
-                    </tr>
-                </thead>
-
-                <tbody id="records"></tbody>
-            </table>
-
-        </div>
-
-        <footer>
-            Educational EHR demonstration | Microsoft Azure
-        </footer>
-
-    </main>
-
-    <script>
-        const form = document.getElementById("patientForm");
-        const records = document.getElementById("records");
-        const message = document.getElementById("message");
-
-        form.addEventListener("submit", function (event) {
-
-            event.preventDefault();
-
-            const values = [
-                document.getElementById("patientId").value.trim(),
-                document.getElementById("patientName").value.trim(),
-                document.getElementById("age").value,
-                document.getElementById("notes").value.trim()
-            ];
-
-            if (values.some(value => value === "")) {
-                message.textContent = "Please complete every field.";
-                return;
-            }
-
-            const row = document.createElement("tr");
-
-            values.forEach(function (value) {
-
-                const cell = document.createElement("td");
-
-                cell.textContent = value;
-
-                row.appendChild(cell);
-
-            });
-
-            records.appendChild(row);
-
-            message.textContent = "Patient record added successfully.";
-
-            form.reset();
-
-            document.getElementById("patientId").focus();
+            row.appendChild(cell);
 
         });
-    </script>
 
-</body>
-</html>
+        // Assignment 8: Delete button
+
+        const actionCell = document.createElement("td");
+
+        const deleteButton = document.createElement("button");
+
+        deleteButton.textContent = "Delete";
+        deleteButton.style.background = "#c0392b";
+
+        deleteButton.addEventListener("click", function() {
+            deletePatient(patient.id);
+        });
+
+        actionCell.appendChild(deleteButton);
+        row.appendChild(actionCell);
+
+        records.appendChild(row);
+
+    });
+
+    updateCount();
+
+}
+
+// Assignment 3: Input validation
+// Assignment 2: Prevent duplicate Patient IDs
+
+form.addEventListener("submit", function(event) {
+
+    event.preventDefault();
+
+    const id = document.getElementById("patientId")
+        .value.trim();
+
+    const name = document.getElementById("patientName")
+        .value.trim();
+
+    const age = Number(
+        document.getElementById("age").value
+    );
+
+    const notes = document.getElementById("notes")
+        .value.trim();
+
+    // Check empty fields
+
+    if (!id || !name || !notes) {
+        message.textContent = "Please complete every field.";
+        return;
+    }
+
+    // Validate Patient ID
+
+    if (!/^[A-Za-z0-9-]+$/.test(id)) {
+        message.textContent = "Enter a valid Patient ID.";
+        return;
+    }
+
+    // Validate Patient Name
+
+    if (!/^[A-Za-z ]+$/.test(name)) {
+        message.textContent = "Enter a valid patient name.";
+        return;
+    }
+
+    // Validate Age
+
+    if (!Number.isInteger(age) || age < 1 || age > 120) {
+        message.textContent = "Age must be between 1 and 120.";
+        return;
+    }
+
+    // Check duplicate Patient ID
+
+    const duplicate = patients.some(
+        patient => patient.id.toLowerCase() === id.toLowerCase()
+    );
+
+    if (duplicate) {
+        message.textContent = "Patient ID already exists!";
+        return;
+    }
+
+    // Add new patient record
+
+    const patient = {
+        id: id,
+        name: name,
+        age: age,
+        notes: notes
+    };
+
+    patients.push(patient);
+
+    // Save records
+
+    saveRecords();
+
+    displayRecords();
+
+    message.textContent = "Patient record added successfully.";
+
+    form.reset();
+
+    document.getElementById("patientId").focus();
+
+});
+
+// Assignment 8: Search patient records
+
+search.addEventListener("input", function() {
+
+    const query = search.value.toLowerCase();
+
+    const filtered = patients.filter(patient =>
+        patient.id.toLowerCase().includes(query) ||
+        patient.name.toLowerCase().includes(query)
+    );
+
+    displayRecords(filtered);
+
+});
+
+// Assignment 8: Delete patient records
+
+function deletePatient(id) {
+
+    const confirmDelete = confirm(
+        "Are you sure you want to delete this record?"
+    );
+
+    if (!confirmDelete) {
+        return;
+    }
+
+    patients = patients.filter(
+        patient => patient.id !== id
+    );
+
+    saveRecords();
+
+    // Update displayed search results
+
+    search.dispatchEvent(new Event("input"));
+
+    message.textContent = "Patient record deleted successfully.";
+
+}
+
+// Assignment 8: Count patient records
+
+function updateCount() {
+
+    count.textContent =
+        "Total Patients: " + patients.length;
+
+}
+
+// Load previously saved records when webpage opens
+
+displayRecords();
